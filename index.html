@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>麻雀点数計算機</title>
+<meta name="description" content="実際に上がった手牌(面子・雀頭・アガリ牌)を入力すると役・翻数・符・点数を自動判定する麻雀の点数計算機。">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="eyebrow-row">
+      <div class="eyebrow">MAHJONG SCORE CALCULATOR</div>
+      <div class="glyphs"><span>發</span><span>中</span></div>
+    </div>
+    <h1>麻雀点数計算機</h1>
+    <p class="tagline">実際に上がった手牌(面子・雀頭・アガリ牌)を入力すると、役の判定から翻数・符・点数まで自動で計算します。</p>
+  </header>
+
+  <section class="card" id="status-card">
+    <div class="card-head"><div class="card-title">状況 <span class="num">SITUATION</span></div></div>
+    <div class="status-grid">
+      <div>
+        <div class="status-label">親・子</div>
+        <div class="seg" id="seg-seat">
+          <button data-group="seat" data-value="child">子</button>
+          <button data-group="seat" data-value="dealer">親</button>
+        </div>
+      </div>
+      <div>
+        <div class="status-label">場風</div>
+        <select id="sel-round" class="mini-select">
+          <option value="1">東</option>
+          <option value="2">南</option>
+        </select>
+      </div>
+      <div id="seat-wind-wrap">
+        <div class="status-label">自風(子)</div>
+        <select id="sel-seatwind" class="mini-select">
+          <option value="2">南</option>
+          <option value="3">西</option>
+          <option value="4">北</option>
+        </select>
+      </div>
+      <div>
+        <div class="status-label">和了方法</div>
+        <div class="seg" id="seg-win">
+          <button data-group="win" data-value="ron">ロン</button>
+          <button data-group="win" data-value="tsumo">ツモ</button>
+        </div>
+      </div>
+      <div>
+        <div class="status-label">手の形</div>
+        <div class="seg" id="seg-open">
+          <button data-group="open" data-value="closed">面前</button>
+          <button data-group="open" data-value="open">副露</button>
+        </div>
+      </div>
+      <div>
+        <div class="status-label">リーチ</div>
+        <div class="seg" id="seg-riichi">
+          <button data-group="riichi" data-value="none">ヤミ</button>
+          <button data-group="riichi" data-value="riichi">リーチ</button>
+          <button data-group="riichi" data-value="double">W立直</button>
+        </div>
+      </div>
+    </div>
+    <div class="chip-row">
+      <label class="chip-toggle"><input type="checkbox" id="chk-ippatsu"> 一発</label>
+      <label class="chip-toggle"><input type="checkbox" data-sit="rinshan"> 嶺上開花</label>
+      <label class="chip-toggle"><input type="checkbox" data-sit="chankan"> 槍槓</label>
+      <label class="chip-toggle"><input type="checkbox" data-sit="haitei"> 海底摸月</label>
+      <label class="chip-toggle"><input type="checkbox" data-sit="houtei"> 河底撈魚</label>
+      <label class="chip-toggle yakuman-chip"><input type="checkbox" data-sit="tenchi"> 天和・地和</label>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div class="card-title">ドラ <span class="num">DORA</span></div></div>
+    <div class="stepper-row"><div><span class="name">ドラ</span></div>
+      <div class="stepper" data-stepper="dora"><button data-dir="-1">−</button><span class="val">0</span><button data-dir="1">+</button></div>
+    </div>
+    <div class="stepper-row"><div><span class="name">赤ドラ</span></div>
+      <div class="stepper" data-stepper="aka"><button data-dir="-1">−</button><span class="val">0</span><button data-dir="1">+</button></div>
+    </div>
+    <div class="stepper-row" style="border-bottom:0;"><div><span class="name">裏ドラ</span><span class="desc">立直時のみ</span></div>
+      <div class="stepper" data-stepper="ura"><button data-dir="-1">−</button><span class="val">0</span><button data-dir="1">+</button></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div class="card-title">手牌 <span class="num">HAND</span></div>
+      <div class="seg small" id="seg-shape">
+        <button data-group="shape" data-value="standard">通常手</button>
+        <button data-group="shape" data-value="chiitoi">七対子</button>
+        <button data-group="shape" data-value="kokushi">国士無双</button>
+      </div>
+    </div>
+    <div id="hand-standard">
+      <div id="melds"></div>
+      <div id="pair-row"></div>
+    </div>
+    <div id="hand-chiitoi" hidden>
+      <div id="chiitoi-rows"></div>
+    </div>
+    <div id="hand-kokushi" hidden>
+      <div class="card-note" style="margin-bottom:10px;">13種の么九牌をすべて1枚以上、うち1種だけ2枚(合計14枚)になるようクリックしてください。</div>
+      <div class="kokushi-grid" id="kokushi-grid"></div>
+      <div class="fu-row" style="margin-top:14px;"><span class="name">アガリ牌</span><select id="kokushi-win"></select></div>
+    </div>
+  </section>
+
+  <section class="result" id="result"></section>
+
+  <section class="card">
+    <div class="history-toggle" id="history-toggle">
+      <div class="card-title" style="margin:0;">履歴 <span class="num">HISTORY</span></div>
+      <span class="arrow">▶</span>
+    </div>
+    <div id="history-body" style="display:none;">
+      <div class="history-list" id="history-list"></div>
+      <div style="margin-top:10px;"><button class="clear-btn" id="history-clear">履歴を消去</button></div>
+    </div>
+  </section>
+
+  <footer>点数は東南場ルール・標準的な符計算に基づく算出です。実戦のローカルルールに合わせて確認してください。</footer>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
